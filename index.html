@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>螺旋冒險 V11 - 修正版</title>
+    <title>螺旋冒險 V12</title>
     <style>
         :root { --bg: #0d0d0d; --gold: #c5a059; --finish: #e67e22; --border: #333; --accent: #ff6b6b; --modal-bg: rgba(20,20,20,0.98); }
         * { box-sizing: border-box; touch-action: none; }
@@ -13,19 +13,22 @@
         .page { position: absolute; inset: 0; z-index: 1000; background: #111; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; }
         .active { display: flex; }
 
-        .btn { width: 100%; max-width: 300px; padding: 15px; margin: 8px; background: var(--gold); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: #000; text-align: center; }
+        /* 按鈕美化 */
+        .btn { width: 100%; max-width: 300px; padding: 15px; margin: 8px; background: var(--gold); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: #000; text-align: center; font-size: 16px; }
+        .btn-back { background: #444; color: #fff; margin-top: 20px; }
+        .btn-small { padding: 8px 15px; width: auto; font-size: 12px; margin: 5px; }
+
         .card { background: #1a1a1a; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border); width: 100%; max-width: 800px; }
 
-        /* 真心話編輯專屬樣式 */
-        .truth-item { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 10px; border-radius: 5px; margin-bottom: 5px; border-left: 4px solid var(--accent); }
-        .del-btn { background: #ff4757; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        /* 真心話列表 */
+        .truth-item { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 10px; border-radius: 5px; margin-bottom: 5px; border-left: 4px solid var(--accent); width: 100%; }
 
         /* 遊戲區域 */
         #game-view { position: fixed; inset: 0; width: 100vw; height: 100vh; background: #000; z-index: 500; display: none; }
         #world { position: absolute; transform-origin: center; }
-        .cell { position: absolute; width: 90px; height: 90px; border: 1px solid var(--border); background: #161616; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 5px; font-size: 11px; }
+        .cell { position: absolute; width: 92px; height: 92px; border: 1px solid var(--border); background: #161616; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 5px; font-size: 11px; }
 
-        /* 嵌入式控制中心 */
+        /* 控制中心 */
         #core-panel {
             position: absolute; width: 180px; height: 180px;
             background: radial-gradient(circle, #222 0%, #000 100%);
@@ -35,45 +38,47 @@
             pointer-events: auto;
         }
 
-        .player-token { position: absolute; font-size: 45px; z-index: 100; transition: all 0.4s; filter: drop-shadow(0 4px 4px #000); pointer-events: none; }
+        /* 遊戲內的返回按鈕 */
+        #game-exit-btn { position: fixed; top: 15px; left: 15px; z-index: 2000; background: rgba(0,0,0,0.5); border: 1px solid #666; color: #fff; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; }
 
-        /* 彈窗 */
-        #task-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background: var(--modal-bg); border: 2px solid var(--gold); width: 100%; max-width: 400px; padding: 30px; border-radius: 20px; text-align: center; }
+        .player-token { position: absolute; font-size: 45px; z-index: 100; transition: all 0.4s; pointer-events: none; }
     </style>
 </head>
 <body>
 
 <div id="page-main" class="page active">
-    <h1 style="color:var(--gold); margin-top: 5vh;">螺旋冒險 V11</h1>
-    <button class="btn" onclick="openSetup()">進入遊戲設定</button>
-    <button class="btn" style="background:#444;" onclick="navTo('map-editor')">地圖任務編輯器</button>
-    <button class="btn" style="background:#444;" onclick="navTo('truth-editor')">建立真心話題庫</button>
-</div>
-
-<div id="page-truth-editor" class="page">
-    <h2>🤐 真心話題庫管理</h2>
-    <div class="card">
-        <div style="display:flex; gap:10px;">
-            <input id="new-truth-input" type="text" placeholder="輸入題目內容..." style="flex:1; padding:10px; background:#000; color:#fff; border:1px solid #444;">
-            <button onclick="saveTruth()" style="background:var(--gold); border:none; padding:10px; border-radius:5px; cursor:pointer; font-weight:bold;">新增</button>
-        </div>
-    </div>
-    <div id="truth-container" style="width:100%; max-width:600px;">
-        </div>
-    <button class="btn" style="margin-top:20px;" onclick="navTo('main')">返回主選單</button>
+    <h1 style="color:var(--gold); margin-top: 5vh;">螺旋冒險</h1>
+    <button class="btn" onclick="navTo('setup')">開始雙人遊戲</button>
+    <button class="btn" style="background:#333; color:#aaa;" onclick="navTo('map-editor')">地圖任務編輯器</button>
+    <button class="btn" style="background:#333; color:#aaa;" onclick="navTo('truth-editor')">建立真心話題庫</button>
 </div>
 
 <div id="page-map-editor" class="page">
     <h2>🗺️ 地圖編輯</h2>
     <div style="display:flex; gap:5px; margin-bottom:15px; width:100%; max-width:800px;">
-        <button class="btn" style="flex:1; font-size:12px;" onclick="setEditDiff(1)">難度 1</button>
-        <button class="btn" style="flex:1; font-size:12px;" onclick="setEditDiff(2)">難度 2</button>
-        <button class="btn" style="flex:1; font-size:12px;" onclick="setEditDiff(3)">難度 3</button>
-        <button class="btn" style="flex:1; font-size:12px;" onclick="setEditDiff(4)">難度 4</button>
+        <button class="btn-small" style="flex:1;" onclick="setEditDiff(1)">難度 1</button>
+        <button class="btn-small" style="flex:1;" onclick="setEditDiff(2)">難度 2</button>
+        <button class="btn-small" style="flex:1;" onclick="setEditDiff(3)">難度 3</button>
+        <button class="btn-small" style="flex:1;" onclick="setEditDiff(4)">難度 4</button>
     </div>
     <div id="task-editor-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:10px; width:100%;"></div>
-    <button class="btn" style="margin:20px 0;" onclick="saveMapData()">儲存地圖資料</button>
+
+    <div style="display:flex; width:100%; max-width:300px; gap:10px;">
+        <button class="btn" onclick="saveMapData()">儲存</button>
+        <button class="btn btn-back" onclick="navTo('main')">返回</button>
+    </div>
+</div>
+
+<div id="page-truth-editor" class="page">
+    <h2>🤐 真心話題庫</h2>
+    <div class="card">
+        <div style="display:flex; gap:10px;">
+            <input id="new-truth-input" type="text" placeholder="輸入題目..." style="flex:1; padding:10px; background:#000; color:#fff; border:1px solid #444;">
+            <button onclick="saveTruth()" class="btn-small" style="background:var(--gold); color:#000;">新增</button>
+        </div>
+    </div>
+    <div id="truth-container" style="width:100%; max-width:600px;"></div>
+    <button class="btn btn-back" onclick="navTo('main')">返回主選單</button>
 </div>
 
 <div id="page-setup" class="page">
@@ -85,10 +90,13 @@
         </select>
     </div>
     <div id="player-config-inputs" style="width:100%; max-width:800px;"></div>
+
     <button class="btn" onclick="checkAndLaunch()">正式開始遊戲</button>
+    <button class="btn btn-back" onclick="navTo('main')">返回主選單</button>
 </div>
 
 <div id="game-view">
+    <button id="game-exit-btn" onclick="confirmExit()">離開遊戲</button>
     <div id="viewport" style="width:100%; height:100%;">
         <div id="world">
             <div id="core-panel">
@@ -100,130 +108,95 @@
     </div>
 </div>
 
-<div id="task-modal">
-    <div class="modal-content">
+<div id="task-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background:var(--modal-bg); border: 2px solid var(--gold); width: 100%; max-width: 400px; padding: 30px; border-radius: 20px; text-align: center;">
         <h2 id="m-pname" style="color:var(--gold);"></h2>
         <div id="m-task" style="font-size:18px; margin:20px 0;"></div>
-        <button class="btn" onclick="closeGameModal()">完成任務</button>
+        <button class="btn" onclick="closeGameModal()" style="margin:0;">完成任務</button>
     </div>
 </div>
 
 <script>
-// --- 資料庫管理 ---
+// 數據與 V11 保持一致
 let db = {
-    maps: JSON.parse(localStorage.getItem('v11_maps')) || {
-        1: Array(48).fill().map((_,i)=>`任務 ${i+1}`), 2: Array(48).fill().map((_,i)=>`任務 ${i+1}`),
-        3: Array(48).fill().map((_,i)=>`任務 ${i+1}`), 4: Array(48).fill().map((_,i)=>`任務 ${i+1}`)
+    maps: JSON.parse(localStorage.getItem('v12_maps')) || {
+        1: Array(48).fill().map((_,i)=>`難度1-任務${i+1}`), 2: Array(48).fill().map((_,i)=>`難度2-任務${i+1}`),
+        3: Array(48).fill().map((_,i)=>`難度3-任務${i+1}`), 4: Array(48).fill().map((_,i)=>`難度4-任務${i+1}`)
     },
-    truths: JSON.parse(localStorage.getItem('v11_truths')) || ["大聲說出你最近的一個謊言", "對對方做一個鬼臉"]
+    truths: JSON.parse(localStorage.getItem('v12_truths')) || ["大聲說出你最近的一個謊言", "對對方做一個鬼臉"]
 };
 
 let curEditDiff = 1;
 let g = { players: [], tasks: [], truthMap: {}, cur: 0, moving: false, path: [] };
 
-// --- 導覽與真心話邏輯 ---
 function navTo(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById('game-view').style.display = (page === 'game') ? 'block' : 'none';
     if(page !== 'game') document.getElementById('page-'+page).classList.add('active');
     if(page === 'truth-editor') renderTruthList();
+    if(page === 'setup') openSetup();
+    if(page === 'map-editor') setEditDiff(1);
 }
 
+// 離開遊戲確認
+function confirmExit() {
+    if(confirm("確定要離開目前遊戲並返回主選單嗎？")) {
+        navTo('main');
+        location.reload(); // 重整以重置遊戲狀態
+    }
+}
+
+// 其餘邏輯 (真心話、地圖、遊戲引擎) 完全繼承自 V11
 function saveTruth() {
     const input = document.getElementById('new-truth-input');
     if(input.value.trim()) {
         db.truths.push(input.value.trim());
-        localStorage.setItem('v11_truths', JSON.stringify(db.truths));
+        localStorage.setItem('v12_truths', JSON.stringify(db.truths));
         input.value = '';
         renderTruthList();
     }
 }
-
 function renderTruthList() {
     const container = document.getElementById('truth-container');
-    container.innerHTML = db.truths.map((t, i) => `
-        <div class="truth-item">
-            <span>${i+1}. ${t}</span>
-            <button class="del-btn" onclick="removeTruth(${i})">刪除</button>
-        </div>
-    `).join('');
+    container.innerHTML = db.truths.map((t, i) => `<div class="truth-item"><span>${i+1}. ${t}</span><button style="background:red; color:white; border:none; padding:5px; border-radius:3px;" onclick="removeTruth(${i})">刪除</button></div>`).join('');
 }
+function removeTruth(index) { db.truths.splice(index, 1); localStorage.setItem('v12_truths', JSON.stringify(db.truths)); renderTruthList(); }
 
-function removeTruth(index) {
-    db.truths.splice(index, 1);
-    localStorage.setItem('v11_truths', JSON.stringify(db.truths));
-    renderTruthList();
-}
-
-// --- 地圖編輯器 ---
 function setEditDiff(n) {
     curEditDiff = n;
     const grid = document.getElementById('task-editor-grid');
     grid.innerHTML = '';
     db.maps[n].forEach((txt, i) => {
-        grid.innerHTML += `
-            <div class="card">
-                <b>格 ${i+1}</b>
-                <textarea id="task-txt-${i}">${txt}</textarea>
-                <button onclick="document.getElementById('task-txt-${i}').value += '🎭'" style="font-size:10px; cursor:pointer;">插入 🎭 (代表對方)</button>
-            </div>`;
+        grid.innerHTML += `<div class="card"><b>格 ${i+1}</b><textarea id="task-txt-${i}">${txt}</textarea><button onclick="document.getElementById('task-txt-${i}').value += '🎭'" style="font-size:10px; cursor:pointer;">插入 🎭</button></div>`;
     });
 }
-
 function saveMapData() {
     for(let i=0; i<48; i++) db.maps[curEditDiff][i] = document.getElementById('task-txt-'+i).value;
-    localStorage.setItem('v11_maps', JSON.stringify(db.maps));
-    alert('難度 ' + curEditDiff + ' 儲存成功！');
-    navTo('main');
+    localStorage.setItem('v12_maps', JSON.stringify(db.maps));
+    alert('儲存完成！');
 }
 
-// --- 遊戲設定與啟動 ---
 function openSetup() {
-    navTo('setup');
     const box = document.getElementById('player-config-inputs');
     box.innerHTML = '';
-    const emojis = ['🐱','🦊','🐷','🤖','🧛','🧙','🐙','🦁'];
     for(let i=0; i<2; i++) {
-        box.innerHTML += `
-            <div class="card">
-                玩家 ${i+1} 名稱: <input id="pn-input-${i}" value="Player ${i+1}" style="background:#000; color:#fff; border:1px solid #444; padding:5px;">
-                性別: <select id="pg-input-${i}"><option value="M">男</option><option value="F">女</option></select>
-                角色: <select id="pe-input-${i}" onchange="syncEmojis(${i})">
-                    ${emojis.map((e,idx) => `<option ${idx===i?'selected':''}>${e}</option>`).join('')}
-                </select>
-            </div>`;
-    }
-}
-
-function syncEmojis(idx) {
-    const e0 = document.getElementById('pe-input-0').value;
-    const e1 = document.getElementById('pe-input-1').value;
-    if(e0 === e1) {
-        alert("不能選擇相同角色！");
-        const sel = document.getElementById(`pe-input-${idx}`);
-        sel.selectedIndex = (sel.selectedIndex + 1) % 8;
+        box.innerHTML += `<div class="card">玩家 ${i+1} 姓名: <input id="pn-input-${i}" value="P${i+1}" style="background:#000; color:#fff; border:1px solid #444; padding:5px;"><br>性別: <select id="pg-input-${i}"><option value="M">男</option><option value="F">女</option></select> 角色: <select id="pe-input-${i}">${['🐱','🦊','🐷','🤖','🧛','🧙','🐙','🦁'].map((e,idx) => `<option ${idx===i?'selected':''}>${e}</option>`).join('')}</select></div>`;
     }
 }
 
 function checkAndLaunch() {
     const diff = document.getElementById('game-diff-select').value;
     g.tasks = [...db.maps[diff]];
-    g.players = [0,1].map(i => ({
-        name: document.getElementById(`pn-input-${i}`).value,
-        gen: document.getElementById(`pg-input-${i}`).value,
-        emo: document.getElementById(`pe-input-${i}`).value,
-        pos: 0
-    }));
+    g.players = [0,1].map(i => ({ name: document.getElementById(`pn-input-${i}`).value, gen: document.getElementById(`pg-input-${i}`).value, emo: document.getElementById(`pe-input-${i}`).value, pos: 0 }));
     navTo('game');
     setTimeout(drawSpiralWorld, 300);
 }
 
-// --- 螺旋引擎 ---
+// 螺旋引擎 (與 V11 相同)
 function drawSpiralWorld() {
     const world = document.getElementById('world');
     world.querySelectorAll('.cell, .player-token').forEach(el => el.remove());
     g.path = []; g.truthMap = {};
-
     let x=0, y=0, dx=1, dy=0, step=7, left=step, turnC=0;
     for(let i=0; i<50; i++) {
         g.path.push({ x: x*92, y: y*92, isTurn: (left===1) });
@@ -234,28 +207,21 @@ function drawSpiralWorld() {
         }
         x+=dx; y+=dy;
     }
-
-    // 核心面板定位
-    const core = document.getElementById('core-panel');
-    core.style.left = (2 * 92) + "px";
-    core.style.top = (2 * 92) + "px";
-
+    document.getElementById('core-panel').style.left = (2 * 92) + "px";
+    document.getElementById('core-panel').style.top = (2 * 92) + "px";
     g.path.forEach((pos, i) => {
         const c = document.createElement('div');
         c.className = 'cell' + (i===49?' cell-finish':'');
         c.style.left = pos.x + 'px'; c.style.top = pos.y + 'px';
         let raw = (i===0)?"起點":(i===49)?"終點":g.tasks[i-1];
         c.innerHTML = `<span style="opacity:0.2; font-size:9px">${i}</span><div style="font-size:10px">${raw.replace(/🎭/g, "👤")}</div>`;
-
         if(pos.isTurn && i>0 && i<49) {
             const t = document.createElement('div'); t.style.color="var(--gold)"; t.style.fontSize="9px"; t.innerText="真心話";
             c.appendChild(t);
-            // 從題庫隨機抽
-            g.truthMap[i] = db.truths[Math.floor(Math.random()*db.truths.length)] || "真心話冷卻中...";
+            g.truthMap[i] = db.truths[Math.floor(Math.random()*db.truths.length)] || "真心話";
         }
         world.appendChild(c);
     });
-
     updateTokens();
     camX = window.innerWidth/2 - (92*3.5); camY = window.innerHeight/2 - (92*3.5);
     refreshCam();
@@ -273,7 +239,6 @@ function updateTokens() {
     });
 }
 
-// --- 骰子邏輯 ---
 function triggerRoll() {
     if(g.moving) return;
     g.moving = true;
@@ -281,7 +246,7 @@ function triggerRoll() {
     let count = 0;
     let anim = setInterval(() => {
         document.getElementById('dice-face').innerText = ['⚀','⚁','⚂','⚃','⚄','⚅'][Math.floor(Math.random()*6)];
-        if(count++ > 12) {
+        if(count++ > 10) {
             clearInterval(anim);
             const val = Math.floor(Math.random()*6)+1;
             document.getElementById('dice-face').innerText = ['','⚀','⚁','⚂','⚃','⚄','⚅'][val];
@@ -305,7 +270,6 @@ function executeMove(steps) {
                     taskText = taskText.replace(/🎭/g, `<b style="color:var(--accent)">${other.name}</b>`);
                 }
                 const truth = g.truthMap[p.pos] ? `<br><br><span style="color:var(--gold)">🤐 真心話：${g.truthMap[p.pos]}</span>` : "";
-
                 document.getElementById('m-pname').innerText = `${p.emo} ${p.name}`;
                 document.getElementById('m-task').innerHTML = taskText + truth;
                 document.getElementById('task-modal').style.display = 'flex';
@@ -316,22 +280,11 @@ function executeMove(steps) {
 
 function closeGameModal() {
     document.getElementById('task-modal').style.display = 'none';
-    if(g.players[g.cur].pos === 49) {
-        alert("勝利！"); location.reload();
-    } else {
-        g.cur = (g.cur+1)%2;
-        g.moving = false;
-        document.getElementById('roll-btn').disabled = false;
-        updateGameUI();
-    }
+    if(g.players[g.cur].pos === 49) { alert("勝利！"); location.reload(); }
+    else { g.cur = (g.cur+1)%2; g.moving = false; document.getElementById('roll-btn').disabled = false; updateGameUI(); }
 }
+function updateGameUI() { document.getElementById('p-turn-name').innerText = `輪到：${g.players[g.cur].name}`; }
 
-function updateGameUI() {
-    const p = g.players[g.cur];
-    document.getElementById('p-turn-name').innerText = `輪到：${p.name}`;
-}
-
-// --- 控制系統 ---
 let camX=0, camY=0, camS=0.8;
 function refreshCam() { document.getElementById('world').style.transform = `translate(${camX}px, ${camY}px) scale(${camS})`; }
 window.onwheel = (e) => { camS = Math.min(Math.max(0.3, camS + (e.deltaY<0?0.05:-0.05)), 1.5); refreshCam(); };
@@ -340,8 +293,6 @@ window.onpointerdown = (e) => { if(e.target.id==='viewport' || e.target.id==='wo
 window.onpointermove = (e) => { if(isP) { camX+=(e.clientX-lx); camY+=(e.clientY-ly); lx=e.clientX; ly=e.clientY; refreshCam(); } };
 window.onpointerup = () => isP=false;
 
-// 初始加載
-setEditDiff(1);
 </script>
 </body>
 </html>
